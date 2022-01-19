@@ -1,0 +1,36 @@
+---
+
+- hosts: jenkins
+  gather_facts: true
+  become: yes
+  become_method: sudo
+
+  vars:
+    # For RedHat/CentOS:
+    jenkins_repo_url: https://pkg.jenkins.io/redhat{{ '-stable' if (jenkins_prefer_lts | bool) else '' }}/jenkins.repo
+    jenkins_repo_key_url: https://pkg.jenkins.io/redhat{{ '-stable' if (jenkins_prefer_lts | bool) else '' }}/jenkins.io.key
+    java_packages: "java-1.8.0-openjdk"
+    jenkins_hostname: "192.168.56.3.nip.io"
+    jenkins_admin_username: "ansible"
+    jenkins_admin_password: "Pa55w0rD"
+
+
+  pre_tasks:
+  - name: ca-certificates update command line execution
+    command: /bin/update-ca-trust
+
+  - name: Update yum cache.
+    yum: 
+      update_cache: yes 
+
+  - name: ensure pre-req is installed
+    yum:
+      name: "{{ item }}"
+      state: present
+      update_cache: true
+    loop:
+      - epel-release
+
+  roles:
+    - geerlingguy.java
+    - geerlingguy.jenkins
